@@ -133,6 +133,7 @@ fn stackmachine(
 			}
 			(Transition::Flush, _) | (Transition::FlushPopOnEof, false) => {
 				if progress == 0 {
+					assert!(is_horizon_lengthenable || horizon.is_empty());
 					break;
 				}
 			}
