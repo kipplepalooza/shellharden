@@ -61,3 +61,17 @@ pub fn is_word(byte: u8) -> bool {
 		_ => true
 	}
 }
+
+// pub fn is_word(byte: u8) -> bool {
+// 	let mut sum: u8 = 0;
+// 	sum = if byte <= b' ' { 1 } else { sum };
+// 	sum = if byte == b'&' { 1 } else { sum };
+// 	sum = if byte == b'(' { 1 } else { sum };
+// 	sum = if byte == b')' { 1 } else { sum };
+// 	sum = if byte == b';' { 1 } else { sum };
+// 	sum = if byte == b'<' { 1 } else { sum };
+// 	sum = if byte == b'>' { 1 } else { sum };
+// 	sum = if byte == b'`' { 1 } else { sum };
+// 	sum = if byte == b'|' { 1 } else { sum };
+// 	return sum == 0;
+// }
