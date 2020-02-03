@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2019 Andreas Nordal
+ * Copyright 2016 - 2020 Andreas Nordal
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -48,22 +48,17 @@ pub fn keyword_or_command(
 			})), pre: i, len: 1, alt: None
 		};
 	}
-	let mut len = identifierlen(&horizon[i..]);
+	let len = lvaluelen(&horizon[i..]);
 	if i + len == horizon.len() && (i > 0 || is_horizon_lengthenable) {
 		return flush(i);
 	}
-	if len > 0 && i + len < horizon.len() {
-		if horizon[i + len] == b'+' && i + len + 1 < horizon.len() {
-			len += 1;
-		}
-		if horizon[i + len] == b'=' {
-			return WhatNow{
-				tri: Transition::Push(Box::new(SitRvalue{end_trigger})),
-				pre: i + len + 1, len: 0, alt: None
-			};
-		}
+	if len != 0 {
+		return WhatNow{
+			tri: Transition::Push(Box::new(SitRvalue{end_trigger})),
+			pre: i + len, len: 0, alt: None
+		};
 	}
-	let len = len + predlen(is_word, &horizon[i+len..]);
+	let len = predlen(is_word, &horizon[i..]);
 	if i + len == horizon.len() && (i > 0 || is_horizon_lengthenable) {
 		return flush(i);
 	}
@@ -274,6 +269,39 @@ fn find_usual_suspects(
 		return Some(flush(i + ate));
 	}
 	None
+}
+
+fn lvaluelen(horizon: &[u8]) -> usize {
+	let mut ate = identifierlen(&horizon);
+	if ate != 0 {
+
+		#[derive(Clone)]
+		#[derive(Copy)]
+		enum Lex {
+			Ident,
+			Brack,
+			Pluss,
+		}
+		let mut state = Lex::Ident;
+
+		while ate != horizon.len() {
+			let byte :u8 = horizon[ate];
+			ate += 1;
+
+			// TODO: Recursion: Expression tracker
+			match (state, byte) {
+				(Lex::Ident, b'=') => break,
+				(Lex::Pluss, b'=') => break,
+				(Lex::Ident, b'[') => state = Lex::Brack,
+				(Lex::Brack, b']') => state = Lex::Ident,
+				(Lex::Ident, b'+') => state = Lex::Pluss,
+				(Lex::Ident, _) => return 0,
+				(Lex::Pluss, _) => return 0,
+				(Lex::Brack, _) => {},
+			}
+		}
+	}
+	ate
 }
 
 fn find_heredoc(horizon: &[u8]) -> (usize, Vec<u8>) {
